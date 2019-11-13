@@ -1,0 +1,188 @@
+#%%
+import urllib.request, urllib.error
+import requests
+from bs4 import BeautifulSoup
+from time import sleep
+
+USproxies = {
+    "http":"40.117.231.19:3128",
+    "https":"40.117.231.19:3128"
+}
+
+N = 60 #ページネートの数
+BT = random.randint(1, 5)
+
+for i in range(1, N+1): #元for i in range(N)
+
+    sleep(BT)#アクセスが多くなりすぎないように時間を開ける
+
+    #pの値をfor文で変える
+    url = ''
+    print(url)
+
+    response = requests.get(url, proxies=USproxies)
+    response.encoding = response.apparent_encoding
+
+    bs = BeautifulSoup(response.text, 'html.parser')
+    div_page_frame = bs.select('div.pageFrame')
+    print(div_page_frame[0])
+
+
+#%%
+import pandas as pd
+import MeCab
+
+df = pd.read_csv('Ft_blockchain.csv')
+df.date = df.date.apply(pd.to_datetime)
+pd.str.lower(df.title)
+t = MeCab.Tagger("-Ochasen -d /usr/local/lib/mecab/dic/mecab-ipadic-NEologd")
+
+words_list = []
+
+for s in df.title:
+    s_parsed = t.parse(s)
+    word_s = []
+
+    for line in s_parsed.splitlines()[:-1]:
+        word_s.append(line.split("\t")[0])
+    words_list.append(word_s)
+
+word2int = {}
+
+i = 0
+#各単語の単語のリストに対して処理を反復
+for words in words_list:
+#文書内の各単語に対して処理を反復
+    for word in words:
+        #単語が辞書に含まれてなければ追加して対応する整数を割り当てる
+        if word not in word2int:
+            word2int[word] = i
+            i += 1  
+print(word2int)
+
+
+#%%
+import pandas as pd
+
+df_nk= pd.read_csv('.csv')
+#df2 = df1.T
+#df2.columns =['title', 'date', 'abstract']
+#df2
+df_nk.date = df_nk.date.apply(pd.to_datetime)
+df_nk['month'] = df_nk['date'].map(lambda x: str(x.year) + "-" + str(x.month))
+#df_nk['monthly_count'] = df_nk.groupby(['month']).size()
+df_all= pd.read_csv('all_blockchain.csv')
+df_all.date = df_all.date.apply(pd.to_datetime)
+df_all['month'] = df_all['date'].map(lambda x: str(x.year) + "-" + str(x.month))
+df_all
+
+
+#%%
+#df_nk_count = df_nk.groupby('month')[['company']].count()
+df_all_count = df_all.groupby(['month', 'company']).count()
+df_all_count['cnt'] = df_all_count['id']
+df_all_count.to_csv('test11.csv')
+
+
+#%%
+df_counts = pd.read_csv('test11.csv')
+df_counts.month = df_counts.month.apply(pd.to_datetime)
+
+
+
+#%%
+df_counts.pivot_table('month', 'company' , aggfunc='cnt')
+
+
+#%%
+df_ft = pd.read_csv('ft-data.csv')
+df_ft.columns = ['id', 'date', 'title', 'abstract']
+
+df_ft2 = pd.read_csv('ft-data2.csv')
+df_ft2.columns = ['id', 'date', 'title', 'abstract']
+
+df_ft2
+
+
+
+df_ft3 = pd.concat([df_ft, df_ft2], ignore_index=True)
+
+df_ft3.describe()
+df_ft3.abstract.str.strip()
+
+df_ft3 = df_ft3.replace('\t', ' ', regex=True)
+df_ft3 = df_ft3.replace('\n ', ' ', regex=True)
+
+#df_ft3.to_csv('ft_data8.csv')
+
+df_ft3.date = df_ft3.date.apply(pd.to_datetime)
+df_ft3['month'] = df_ft3['date'].map(lambda x: str(x.year) + "-" + str(x.month))
+df_ft3.groupby(['month']).count()
+df_ft3['company'] = "FT"
+df_ft3
+
+
+df_blockchain = pd.concat([df_all, df_ft3], ignore_index=True)
+df_blockchain
+a = df_blockchain.groupby(['month', 'company']).count()
+a
+#a.to_csv('counting.csv')
+#df_blockchain.to_csv('df_blockchain.csv')
+
+#df_ft3.to_csv('ft_data8.csv')
+#df_all_count['cnt'] = df_all_count['id']
+#df_all_count.to_csv('test11.csv')
+
+
+#%%
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+#nltk.download('vader_lexicon')
+analyzer = SentimentIntensityAnalyzer()
+analyzer.polarity_scores('I am happy')                                      
+
+
+#%%
+df_j=df_df_blockchain.abstract[0:980]
+
+
+#%%
+import MeCab as mc
+from collections import Counter
+# 1.mecabを用いて単語に分けます。
+def mecab_analysis(text):
+    t = mc.Tagger("-Ochasen")
+    t.parse('')
+    node = t.parseToNode(text) 
+    output = []
+    while node:
+        if node.surface != "":  # ヘッダとフッタを除外
+            word_type = node.feature.split(",")[0]
+            if word_type in ["形容詞", "動詞","名詞", "副詞"]:
+                output.append(node.surface)
+        node = node.next
+        if node is None:
+            break
+    return output
+
+def count_csv():
+    text= str(open("ファイル名","r",encoding="utf-8").read())
+    words = mecab_analysis(text)
+# 2.集計して
+    counter = Counter(words)
+# 3.出力します
+    for word, count in counter.most_common():
+        if len(word) > 0:
+
+            print ("%s,%d" % (word, count))
+            
+words = mecab_analysis(text)
+counter = Counter(words)
+for word, count in counter.most_common():
+    if len(word) > 0:
+
+        print ("%s,%d" % (word, count))
+
+
+
+
+
